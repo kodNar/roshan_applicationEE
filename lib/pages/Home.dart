@@ -10,6 +10,7 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color(0xFF1e2c35),
+      body: Center(child: Container(child: Butt('Rosh dead'))),
     );
   }
 }
