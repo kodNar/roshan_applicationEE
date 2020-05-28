@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:chance/chance.dart';
+import 'package:assets_audio_player/assets_audio_player.dart';
 
 class Home extends StatefulWidget {
   @override
@@ -16,7 +17,7 @@ class _HomeState extends State<Home> {
   int phase = 1;
   Timer _timer;
   TimeOfDay now;
-  TimeOfDay aegisExpireTime;
+  TimeOfDay aegisExpireTime = TimeOfDay.fromDateTime(DateTime.now().add(Duration(minutes: 5)));
   String checkText = "Click the image when Roshan has died";
   String text = "Aegis expires in:";
   String probabilityString = "";
@@ -24,31 +25,34 @@ class _HomeState extends State<Home> {
 
   void _startTimer() {
     checkText = "";
-    _counter = 3; //300
+    _counter = 300; //300
     _timer = Timer.periodic(Duration(seconds: 1), (timer) {
       setState(() {
         if (_counter > 0) {
           _counter--;
           if(phase == 3){
-            if(probability > 100){
-              probability = 100;
+            if(probability >= 99){
               _showRoshSpawnDialog();
             }
             probability += 0.55555555555;
-
           }
         } else if (phase == 1) {
-          aegisExpireTime = TimeOfDay(hour: now.hour + 2, minute: now.minute + 8);
+         calculateTime(phase);
+         _playSound();
           text = 'Roshan can spawn in:';
           checkText = 'Aegis has expired';
           phase = 2;
           _counter = 180; //180;
         } else if (phase == 2) {
-          aegisExpireTime = TimeOfDay(hour: now.hour + 2, minute: now.minute + 11);
+          _playSound();
+          calculateTime(phase);
           text = 'Roshan has spawned in:';
           probabilityString = 'Roshan chance to have spawned: ';
           phase = 3;
           _counter = 180;//180;
+        } else if(phase == 3){
+          _playSound();
+          phase = 4;
         }
       });
     });
@@ -67,6 +71,14 @@ class _HomeState extends State<Home> {
         ),
       ),
     );
+  }
+
+  void calculateTime(int phase){
+    if(phase == 1){
+      aegisExpireTime = TimeOfDay.fromDateTime(DateTime.now().add(Duration(minutes: 3)));
+    }if(phase == 2){
+      aegisExpireTime = TimeOfDay.fromDateTime(DateTime.now().add(Duration(minutes: 3)));
+    }
   }
 
   Widget roshReturn() {
@@ -198,6 +210,29 @@ class _HomeState extends State<Home> {
       );
     }return Text("");
   }
+  void _playSound() async{
+    AssetsAudioPlayer assetsAudioPlayer = AssetsAudioPlayer();
+    switch(phase) {
+      case 1: {
+        assetsAudioPlayer.open(
+          Audio("Assets/Sounds/AegisExpired.mp3"),
+        );
+      }
+      break;
+      case 2: {
+        assetsAudioPlayer.open(
+          Audio("Assets/Sounds/roshanCanSpawnnow.mp3"),
+        );
+      }
+      break;
+      case 3: {
+        assetsAudioPlayer.open(
+          Audio("Assets/Sounds/roshanHasSpawned.mp3"),
+        );
+      }
+      break;
+    }
+  }
 
    void _showRoshSpawnDialog() {
      showDialog(
@@ -220,10 +255,9 @@ class _HomeState extends State<Home> {
     }
   void _toggleRoshanDead() {
     setState(() {
+      aegisExpireTime = TimeOfDay.fromDateTime(DateTime.now().add(Duration(hours: 2,minutes: 5)));
       roshDead = true;
       _startTimer();
-      now = TimeOfDay.now();
-      aegisExpireTime = TimeOfDay(hour: now.hour + 2, minute: now.minute + 5);
     });
   }
 }
